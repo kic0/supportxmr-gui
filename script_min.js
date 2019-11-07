@@ -1360,8 +1360,7 @@ var api = function(m, key, xid){
 				params = JSON.stringify(params);
 			}
 			
-			if(url){
-			if(m === 'net'){
+			if(method === 'net'){
 				xhr.open('GET', 'https://supportxmr.com/api/'+url, true);
 			}else{
 				xhr.open('GET', $Q['api']+url, true);
