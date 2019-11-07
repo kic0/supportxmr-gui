@@ -1360,7 +1360,8 @@ var api = function(m, key, xid){
 				params = JSON.stringify(params);
 			}
 			
-			xhr.open(method, $Q['api']+url, true);
+			xhr.open('GET', 'https://supportxmr.com/api/'+url, true);
+			//xhr.open(method, $Q['api']+url, true);
 			xhr.setRequestHeader('Content-Type', 'application/json');
 			
 			if(method === 'POST'){
