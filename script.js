@@ -1,7 +1,7 @@
 var	mde = 'l',
 	$Q = {										
 		'pool':{
-			'nme':'pool.xmrp.pt',										//also sets the cookie prefix
+			'nme':'pool.xmr.pt',										//also sets the cookie prefix
 		},
 		'clr':{
 			'main':'f06923',										//C1
@@ -20,7 +20,7 @@ var	mde = 'l',
 		'explorer':'https://explorer.xmr.pt/block/',
 		'explorertx':'https://explorer.xmr.pt/tx/',
 		'news':false,												//enable news (motd) alerts on homepage
-		'email':true,												//enable email notifications
+		'email':false,												//enable email notifications
 		'timer':60,													//refresh timer in seconds
 		'graph':{
 			'hrs':8,												//max chart length in hours
