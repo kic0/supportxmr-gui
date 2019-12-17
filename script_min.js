@@ -224,21 +224,21 @@ document.body.addEventListener('click', function(e){
 			}else if(id[i] === '#NewsClose'){
 				document.getElementById('News').className = 'hide';
 				setCookie('News', $D['news']['created']);
-			}else if(id[i] === '#InstaPayBtn'){
-				InstaPay();
-			}else if(id[i] === '#AutoPayBtn'){
-				AutoPay();
+//			}else if(id[i] === '#InstaPayBtn'){
+//				InstaPay();
+//			}else if(id[i] === '#AutoPayBtn'){
+//				AutoPay();
 			}else if(id[i] === '#PaymentHistoryBtn'){
 				MinerPaymentHistory(1);
 			}else if(id[i] === '#PaymentHistoryBtnClose'){
 				MinerPayments('back');
 			}else if(id[i] === '#EmailToggleBtn'){
 				EmailToggle();
-			}else if(id[i] === '#InstaPayBtn'){
-				document.getElementById('MinerPaymentsMenu').innerHTML = $I['load'];
-				setTimeout(function(){
-					document.getElementById('MinerPaymentsMenu').innerHTML = '<div class="center C3'+mde+' txt">Demo - Need Endpoint</div>';
-				}, 1500);
+//			}else if(id[i] === '#InstaPayBtn'){
+//				document.getElementById('MinerPaymentsMenu').innerHTML = $I['load'];
+//				setTimeout(function(){
+//					document.getElementById('MinerPaymentsMenu').innerHTML = '<div class="center C3'+mde+' txt">Demo - Need Endpoint</div>';
+//				}, 1500);
 			}else if(id[i] === '#AddrDelete'){
 				SaveAddr($C['AddrField'].value, 'del');
 			}else if(id[i] === '#WorkerPopClose'){
@@ -1225,14 +1225,14 @@ var api = function(m, key, xid){
 		}
 	}else if(m === 'workerdetail'){
 		url = 'miner/'+addr+'/stats/'+xid;
-	}else if(m === 'user' && addr){
-		url = 'user/'+addr;
-	}else if(m === 'updatethreshold'){
-		url = 'user/updateThreshold';
-	}else if(m === 'forcepayment'){
-		url = 'user/forcePayment';
-	}else if(m === 'toggleEmail'){
-		url = 'user/toggleEmail';
+//	}else if(m === 'user' && addr){
+//		url = 'user/'+addr;
+//	}else if(m === 'updatethreshold'){
+//		url = 'user/updateThreshold';
+//	}else if(m === 'forcepayment'){
+//		url = 'user/forcePayment';
+//	}else if(m === 'toggleEmail'){
+//		url = 'user/toggleEmail';
 	}
 
 	return new Promise(function (resolve, reject){
