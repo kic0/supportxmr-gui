@@ -20,11 +20,11 @@ var	mde = 'l',
 		'explorer':'https://explorer.xmr.pt/block/',
 		'explorertx':'https://explorer.xmr.pt/tx/',
 		'news':false,												//enable news (motd) alerts on homepage
-		'email':false,												//enable email notifications
+		'email':true,												//enable email notifications
 		'timer':60,													//refresh timer in seconds
 		'graph':{
-			'hrs':8,												//max chart length in hours
-			'pplns':false,											//show pplns window on chart
+			'hrs':168,												//max chart length in hours
+			'pplns':true,											//show pplns window on chart
 			'blockmin':25											//min number of blocks to show (blocks take their own time scale) max 100
 		},
 		'pay':{
@@ -42,7 +42,7 @@ var	mde = 'l',
 		},
 		'hlp':{
 			'head':'Welcome to '+$Q['pool']['nme'],
-			'text':'Getting started is easy and this pool has a large and friendly community that are happy to help you. The pool operators are M5M400 and Snipa22 who can be reached in the #monero-pools IRC or at <a href="mailto:support@supportxmr.com" class="C1 hov">support@supportxmr.com</a>. Please be patient and someone will get back to you. Most of the time help can be found quicker in the chat. The pool has a quite stable and knowlegable community - you can join the chat and seek help and a friendly chat there :)'
+			'text':'Getting started is easy and this pool has a friendly community that are happy to help you. The pool operators can be reached in the #monero-pt IRC or at <a href="mailto:pool@xmr.pt" class="C1 hov">pool@xmr.pt</a>. Please be patient and someone will get back to you. Most of the time help can be found quicker in the chat. The pool has a quite stable and knowlegable community - you can join the chat and seek help and a friendly chat there'
 		},
 		'msg':{
 			'welcome':{'head':'Welcome to '+$Q['pool']['nme'], 'text':'Visit the <u class="nav C1" data-tar="help">help section</u> to get setup, then enter your '+$Q['cur']['nme']+' address above. After you\'ve submitted a share, your stats will appear here.'},
