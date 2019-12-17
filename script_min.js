@@ -436,7 +436,7 @@ function LoadTimer(){
 			}, 1500);
 		}else{
 			var clr = (mde === 'd') ? $Q['clr']['back-d'] : $Q['clr']['back-l'],
-				grd = 'linear-gradient('+(-90 + (360 * updateTimer / $Q['timer']))+'deg, transparent 50%, #F06A25';
+				grd = 'linear-gradient('+(-90 + (360 * updateTimer / $Q['timer']))+'deg, transparent 50%, #7A7A7A';
 				
 			if(updateTimer < ($Q['timer'] / 2)) grd = 'linear-gradient('+(90 + (360 * updateTimer / $Q['timer']))+'deg, transparent 50%, #'+clr;
 			$C['TimerPie'].style.backgroundImage = grd+' 50%),linear-gradient(90deg, #'+clr+' 50%, transparent 50%)';
@@ -1209,7 +1209,7 @@ var api = function(m, key, xid){
 	}else if(m === 'account'){
 		url = 'miner/'+addr+'/stats';
 	}else if(m === 'pay'){
-		url = 'miner/'+key+'/payments';
+		url = 'miner/'+addr+'/payments';
 		if(xid){
 			xid = (xid > 1) ? (xid - 1) * 10 : 0;
 			url += '?page='+xid+'&limit=10';
