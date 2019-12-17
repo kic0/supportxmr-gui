@@ -24,7 +24,7 @@ var	mde = 'l',
 		'timer':60,													//refresh timer in seconds
 		'graph':{
 			'hrs':168,												//max chart length in hours
-			'pplns':true,											//show pplns window on chart
+			'pplns':false,											//show pplns window on chart
 			'blockmin':25											//min number of blocks to show (blocks take their own time scale) max 100
 		},
 		'pay':{
