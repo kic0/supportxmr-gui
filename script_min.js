@@ -4,7 +4,7 @@ var	mde = 'l',
 			'nme':'pool.xmr.pt',										//also sets the cookie prefix
 		},
 		'clr':{
-			'main':'033cfb',										//C1
+			'main':'7a7a7a',										//C1
 			'secondary':'818181',									//C2
 			'back-l':'e8e8e8',										//C0 - light
 			'back-d':'313131'	   									//C0 - dark
