@@ -25,7 +25,7 @@ var	mde = 'l',
 		'graph':{
 			'hrs':168,												//max chart length in hours
 			'pplns':false,											//show pplns window on chart
-			'blockmin':25											//min number of blocks to show (blocks take their own time scale) max 100
+			'blockmin':50											//min number of blocks to show (blocks take their own time scale) max 100
 		},
 		'pay':{
 			'min_inst':0.2,										//minimum for instant pay
@@ -1157,10 +1157,10 @@ function dta_Help(){
 						'<p>Port descriptions:</p>'+
 						'<ul><li>3333 Low-end CPU</li><li>5555 Fast/Multi CPU</li><li>7777 GPU rigs</li><li>9000 SSL/TLS</li></ul>'+
 					'</td>'+
-					'<td>'+
-						'<p>If you can\'t get through firewall, try these:</p>'+
-						'<ul><li>8080 Firewall bypass</li><li>80 Firewall bypass</li><li>443 Firewall bypass w/SSL/TLS</li></ul>'+
-					'</td>'+
+//					'<td>'+
+//						'<p>If you can\'t get through firewall, try these:</p>'+
+//						'<ul><li>8080 Firewall bypass</li><li>80 Firewall bypass</li><li>443 Firewall bypass w/SSL/TLS</li></ul>'+
+//					'</td>'+
 				'</tr></table></p>'+
 				'<p><b>Optional Fields</b><br>You can also set worker names or fixed difficulty through the configuration.</p>'+
 				'<p>Standard wallet address<br><i>(e.g. miner.exe -u 43T...sUW -p Steve)</i></p>'+
