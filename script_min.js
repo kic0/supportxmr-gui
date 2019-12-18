@@ -16,21 +16,20 @@ var	mde = 'l',
 			'reg':/^[4|8]{1}([A-Za-z0-9]{105}|[A-Za-z0-9]{94})$/	//address regex
 		},
 		'api':'https://pool.xmr.pt/api/',
-		//'api':'http://69.164.198.226/api/',
 		'explorer':'https://explorer.xmr.pt/block/',
 		'explorertx':'https://explorer.xmr.pt/tx/',
 		'news':false,												//enable news (motd) alerts on homepage
 		'email':true,												//enable email notifications
 		'timer':60,													//refresh timer in seconds
 		'graph':{
-			'hrs':168,												//max chart length in hours
+			'hrs':8,												//max chart length in hours
 			'pplns':false,											//show pplns window on chart
 			'blockmin':50											//min number of blocks to show (blocks take their own time scale) max 100
 		},
 		'pay':{
 			'min_inst':0.2,										//minimum for instant pay
 			'min_auto':0.2,											//minimum for automatic threshold
-			'dec_auto':4											//decimal places for threshold
+			'dec_auto':6											//decimal places for threshold
 		}
 	},
 	$$ = {
@@ -1225,8 +1224,8 @@ var api = function(m, key, xid){
 		}
 	}else if(m === 'workerdetail'){
 		url = 'miner/'+addr+'/stats/'+xid;
-	}else if(m === 'user' && addr){
-		url = 'user/'+addr;
+//	}else if(m === 'user' && addr){
+//		url = 'user/'+addr;
 	}else if(m === 'updatethreshold'){
 		url = 'user/updateThreshold';
 //	}else if(m === 'forcepayment'){
