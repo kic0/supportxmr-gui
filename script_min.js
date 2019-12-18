@@ -1211,8 +1211,8 @@ var api = function(m, key, xid){
 	}else if(m === 'pay'){
 		url = 'miner/'+addr+'/payments';
 		if(xid){
-			xid = (xid > 1) ? (xid - 1) * 10 : 0;
-			url += '?page='+xid+'&limit=10';
+//			xid = (xid > 1) ? (xid - 1) * 10 : 0;
+			url += '?page='+xid+'&limit=5';
 		}
 	}else if(m === 'workers' && (isEmpty($A[addr]['wrkrs']) || now > ($A[addr]['wrkrs_updt'] + 120))){
 		url = 'miner/'+addr+'/identifiers';
