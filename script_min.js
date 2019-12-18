@@ -226,8 +226,8 @@ document.body.addEventListener('click', function(e){
 				setCookie('News', $D['news']['created']);
 //			}else if(id[i] === '#InstaPayBtn'){
 //				InstaPay();
-//			}else if(id[i] === '#AutoPayBtn'){
-//				AutoPay();
+			}else if(id[i] === '#AutoPayBtn'){
+				AutoPay();
 			}else if(id[i] === '#PaymentHistoryBtn'){
 				MinerPaymentHistory(1);
 			}else if(id[i] === '#PaymentHistoryBtnClose'){
@@ -1172,8 +1172,8 @@ function dta_Help(){
 			'<div class="helpteaser">Launch the miner and learn more.</div>'+
 			'<div class="helpcontent hide">'+
 				'<p>This pool uses PPLNS to determine payouts. It helps to combat pool hopping and ensures a good payout for miners.</p>'+
-				'<p>'+Perc('0.6')+' Pool Fee</p>'+
-				'<p>0.1 XMR Default Payout</p>'+
+				'<p>'+Perc('0.4')+' Pool Fee</p>'+
+				'<p>0.2 XMR Default Payout</p>'+
 				'<p>60 Block Confirmation Time</p>'+
 			'</div>'+
 		'</div>';
@@ -1227,12 +1227,12 @@ var api = function(m, key, xid){
 		url = 'miner/'+addr+'/stats/'+xid;
 //	}else if(m === 'user' && addr){
 //		url = 'user/'+addr;
-//	}else if(m === 'updatethreshold'){
-//		url = 'user/updateThreshold';
+	}else if(m === 'updatethreshold'){
+		url = 'user/updateThreshold';
 //	}else if(m === 'forcepayment'){
 //		url = 'user/forcePayment';
-//	}else if(m === 'toggleEmail'){
-//		url = 'user/toggleEmail';
+	}else if(m === 'toggleEmail'){
+		url = 'user/toggleEmail';
 	}
 
 	return new Promise(function (resolve, reject){
