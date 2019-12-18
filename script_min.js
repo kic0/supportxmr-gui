@@ -1117,7 +1117,7 @@ function dta_Payments(pge){
 }
 function dta_Help(){
 	document.getElementById('PageTopL').innerHTML = $$['hlp']['head'];
-	document.getElementById('PageTopR').innerHTML = '<span class="txttny C2">Join Us on IRC<br>#monero-pools</span>';
+	document.getElementById('PageTopR').innerHTML = '<span class="txttny C2">Join Us on IRC<br>#monero-pt</span>';
 	var ins = '<p>'+$$['hlp']['text']+'</p>'+
 		'<div class="helpgroup">'+
 			'<div class="helptitle txtbig">Step 1 - Install Wallet & Create Address<div class="btnback">'+$I['arrow']+'</div></div>'+
@@ -1225,8 +1225,8 @@ var api = function(m, key, xid){
 		}
 	}else if(m === 'workerdetail'){
 		url = 'miner/'+addr+'/stats/'+xid;
-//	}else if(m === 'user' && addr){
-//		url = 'user/'+addr;
+	}else if(m === 'user' && addr){
+		url = 'user/'+addr;
 	}else if(m === 'updatethreshold'){
 		url = 'user/updateThreshold';
 //	}else if(m === 'forcepayment'){
