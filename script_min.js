@@ -1202,7 +1202,8 @@ var api = function(m, key, xid){
 	}else if(m === 'netheight' && now > ($U['netheight'] + 180)){
 		url = 'network/stats';
 	}else if(m === 'poolpay'){
-		url = 'pool/payments?page='+((key - 1) * xid)+'&limit='+xid;
+//		url = 'pool/payments?page='+((key - 1) * xid)+'&limit='+xid;
+                url = 'pool/payments?page='+(key - 1)+'&limit='+xid;
 	}else if(m === 'poolstats' && now > ($U['poolstats'] + 180)){
 		url = 'pool/stats';
 	}else if(m === 'account'){
@@ -1231,7 +1232,7 @@ var api = function(m, key, xid){
 //	}else if(m === 'forcepayment'){
 //		url = 'user/forcePayment';
 	}else if(m === 'toggleEmail'){
-		url = 'user/toggleEmail';
+		url = 'auth/toggleEmail';
 	}
 
 	return new Promise(function (resolve, reject){
