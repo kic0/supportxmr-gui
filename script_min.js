@@ -1151,7 +1151,7 @@ function dta_Help(){
 			'<div class="helpcontent hide">'+
 				'<p>Each mining software will have it\'s own config, but they will all ask for the same information:</p>'+
 				'<p><b>Your Monero Address</b><br>Often this will be labeled username, but check the instructions. You can specify a paymentID by using the following format: <i>address</i>.<i>paymentID</i></p>'+
-				'<p><b>Pool Address</b><br>The miner will want a url and a port, like this: pool.supportxmr.com:3333</p>'+
+				'<p><b>Pool Address</b><br>The miner will want a url and a port, like this: pool.xmr.pt:3333</p>'+
 				'<p><table class="txtsmall C3'+mde+'"><tr>'+
 					'<td>'+
 						'<p>Port descriptions:</p>'+
