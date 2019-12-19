@@ -1012,7 +1012,7 @@ function EmailToggle(){
 	ic.classList.add('preload');
 	ic.innerHTML = $I['load'];
 	api('toggleEmail').then(function(){
-		api('user').then(function(){
+		api('authed').then(function(){
 			var ico = $I['x'],
 				lbl = $$['trn']['eml_off'];
 				
@@ -1211,7 +1211,7 @@ var api = function(m, key, xid){
 	}else if(m === 'pay'){
 		url = 'miner/'+addr+'/payments';
 		if(xid){
-//			xid = (xid > 1) ? (xid - 1) * 10 : 0;
+			xid = (xid > 1) ? (xid - 1) * 1 : 0;
 			url += '?page='+xid+'&limit=5';
 		}
 	}else if(m === 'workers' && (isEmpty($A[addr]['wrkrs']) || now > ($A[addr]['wrkrs_updt'] + 120))){
@@ -1228,11 +1228,11 @@ var api = function(m, key, xid){
 //	}else if(m === 'user' && addr){
 //		url = 'user/'+addr;
 	}else if(m === 'updatethreshold'){
-		url = 'user/updateThreshold';
+		url = 'authed/updateThreshold';
 //	}else if(m === 'forcepayment'){
 //		url = 'user/forcePayment';
 	}else if(m === 'toggleEmail'){
-		url = 'auth/toggleEmail';
+		url = 'authed/toggleEmail';
 	}
 
 	return new Promise(function (resolve, reject){
