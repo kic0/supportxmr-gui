@@ -104,6 +104,130 @@ var	mde = 'l',
 /*--------------------------------------*/
 /*-----End of Customization Section------- (You can customize the rest, but shouldn't need to) */
 /*--------------------------------------*/
+//new data input
+
+document.addEventListener("DOMContentLoaded", () => {
+    const mode = localStorage.getItem("mode");
+    if (mode === "darkmode" || mode === "lightmode") {
+        document.body.classList.add(mode);
+    } else {
+        document.body.classList.add("darkmode");
+    }
+
+    TimerLoading("on");
+    setStatsLoading();
+    upd();
+setInterval(() => {
+    TimerLoading("on");
+    setStatsLoading();
+    upd();
+}, $Q.timer * 1000);
+});
+
+
+function upd() {
+    Promise.all([
+        fetch("https://pool.xmr.pt/api/pool/stats").then(r => r.json()).catch(() => null),
+        fetch("https://pool.xmr.pt/api/network/stats").then(r => r.json()).catch(() => null),
+        fetch("https://pool.xmr.pt/api/pool/blocks?limit=1").then(r => r.json()).catch(() => null)
+    ])
+    .then(([p, n, b]) => {
+        if (!p || !n) {
+            showStatsFallback("Unable to load stats.");
+            return;
+        }
+
+        const miners = typeof p.pool_statistics.miners === "number" ? p.pool_statistics.miners : "--";
+        const poolHashrate = formatHashrate(p.pool_statistics.hashRate);
+        const globalHash = (n.difficulty && n.difficulty > 0) ? (n.difficulty / 120) : 1;
+        const globalHashrate = formatHashrate(globalHash);
+
+        updateElement("miners", `Miners: ${miners}`);
+        updateElement("poolHashrate", `Pool Hashrate: ${poolHashrate}`);
+        updateElement("globalHashrate", `Global Hashrate: ${globalHashrate}`);
+
+        if (b && b[0] && b[0].ts) {
+            const lastTs = Math.floor(b[0].ts / 1000);
+            updateElement("lastBlock", `Last Block: ${timeAgo(lastTs)}`);
+        }
+
+        if (typeof window.$D === "undefined") window.$D = { net: [{}] };
+        $D.net = [{
+            tme: Math.floor(Date.now() / 1000),
+            hash: globalHash,
+            difficulty: n.difficulty ?? 0,
+            height: n.height ?? 0,
+            y: globalHash || 1
+        }];
+
+        updateTimer = $Q.timer;
+        if ($C.TimerText) $C.TimerText.innerText = updateTimer;
+        if (typeof Graph_Net === "function") setTimeout(Graph_Net, 500);
+        TimerLoading("off");
+        LoadTimer();
+    });
+}
+
+function LoadTimer() {
+    if (updateCounter) clearInterval(updateCounter);
+    updateTimer = $Q.timer;
+    if ($C.TimerText) $C.TimerText.innerText = updateTimer;
+    updateCounter = setInterval(() => {
+        updateTimer--;
+        if (updateTimer <= 0) {
+            clearInterval(updateCounter);
+            TimerLoading("on");
+            setStatsLoading();
+            upd();
+        }
+        if ($C.TimerText) $C.TimerText.innerText = updateTimer;
+    }, 1000);
+}
+
+function setStatsLoading() {
+    updateElement("miners", "");
+    updateElement("poolHashrate", "");
+    updateElement("globalHashrate", "");
+    updateElement("lastBlock", "");
+}
+
+function timeAgo(timestamp) {
+    let now = Math.floor(Date.now() / 1000);
+    let diff = now - timestamp;
+    let days = Math.floor(diff / 86400);
+    diff %= 86400;
+    let hours = Math.floor(diff / 3600);
+    diff %= 3600;
+    let minutes = Math.floor(diff / 60);
+
+    let result = '';
+    if (days > 0) result += `${days} day${days > 1 ? "s" : ""} `;
+    if (hours > 0) result += `${hours} hour${hours > 1 ? "s" : ""} `;
+    if (minutes > 0) result += `${minutes} min${minutes > 1 ? "s" : ""} `;
+    return result.trim() || "just now";
+}
+
+function showStatsFallback(msg) {
+    const statsEl = document.getElementById("GraphStats");
+    if (statsEl) statsEl.innerHTML = `<span>${msg}</span>`;
+}
+
+function updateElement(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.innerText = value ?? "--";
+}
+
+function formatHashrate(h) {
+    if (!h || isNaN(h)) return "--";
+    let units = ["H/s", "KH/s", "MH/s", "GH/s", "TH/s", "PH/s"], i = 0;
+    while (h >= 1000 && i < units.length - 1) h /= 1000, i++;
+    return `${h.toFixed(2)} ${units[i]}`;
+}
+
+function formatNumber(n) {
+    return n ? n.toLocaleString("en-US") : "--";
+}
+//end of new data input
 
 var addr = UrlVars()['addr'] || '',
 	pref = 'LNA',
@@ -412,37 +536,41 @@ function ErrAlert(tar, err){
 		}
 	}
 }
-function LoadTimer(){
-	clearInterval(updateCounter);
-	TimerLoading('off');
-	updateCounter = setInterval(function(){
-		if(document.hasFocus()){
-			if(outoffocus > 120){
-				//if returning after long absence
-				updateTimer = 0;
-				outoffocus = 0;
-			}else{
-				updateTimer--;
-			}
-		}else{
-			if(outoffocus < 122) outoffocus++;
-		}
-		if(updateTimer <= 0){
-			TimerLoading('on');
-			clearInterval(updateCounter);
-			setTimeout(function(){
-				TimerUpdateData();
-			}, 1500);
-		}else{
-			var clr = (mde === 'd') ? $Q['clr']['back-d'] : $Q['clr']['back-l'],
-				grd = 'linear-gradient('+(-90 + (360 * updateTimer / $Q['timer']))+'deg, transparent 50%, #7A7A7A';
-				
-			if(updateTimer < ($Q['timer'] / 2)) grd = 'linear-gradient('+(90 + (360 * updateTimer / $Q['timer']))+'deg, transparent 50%, #'+clr;
-			$C['TimerPie'].style.backgroundImage = grd+' 50%),linear-gradient(90deg, #'+clr+' 50%, transparent 50%)';
-			$C['TimerText'].innerHTML = updateTimer;
-		}
-	}, 1000);
+let timerStart = Date.now();
+
+function LoadTimer() {
+    clearInterval(updateCounter);
+    TimerLoading('off');
+    timerStart = Date.now();
+    updateTimer = $Q.timer;
+
+    updateCounter = setInterval(function () {
+        const elapsed = Math.floor((Date.now() - timerStart) / 1000);
+        updateTimer = Math.max($Q.timer - elapsed, 0);
+
+        if (updateTimer <= 0) {
+            TimerLoading('on');
+            clearInterval(updateCounter);
+            setTimeout(function () {
+                TimerUpdateData();
+            }, 1500);
+        } else {
+            var clr = (mde === 'd') ? $Q['clr']['back-d'] : $Q['clr']['back-l'];
+            var grd = 'linear-gradient(' + (-90 + (360 * updateTimer / $Q['timer'])) + 'deg, transparent 50%, #7A7A7A';
+            if (updateTimer < ($Q['timer'] / 2)) {
+                grd = 'linear-gradient(' + (90 + (360 * updateTimer / $Q['timer'])) + 'deg, transparent 50%, #' + clr;
+            }
+            $C['TimerPie'].style.backgroundImage = grd + ' 50%),linear-gradient(90deg, #' + clr + ' 50%, transparent 50%)';
+            $C['TimerText'].innerHTML = updateTimer;
+        }
+    }, 1000);
 }
+
+window.addEventListener("focus", () => {
+    const elapsed = Math.floor((Date.now() - timerStart) / 1000);
+    updateTimer = Math.max($Q.timer - elapsed, 0);
+    $C['TimerText'].innerHTML = updateTimer;
+});
 function TimerLoading(sts){
 	var l = document.getElementById('TimerLoader');
 	if(sts === 'on'){
@@ -451,42 +579,73 @@ function TimerLoading(sts){
 		l.classList.add('hide');
 	}
 }
-function TimerUpdateData(){
-	api('block').then(function(){
-		ErrAlert('X');
-	}).catch(function(err){ErrAlert('NetGraph', '')});
-	
-	var l = document.getElementById('MinerHashes');
-	if(l){
-		var typ = (l.innerHTML !== '--') ? 'refresh' : '';
-		Dash_load(typ);
-	}
-	api('net').then(function(){
-		api('pool').then(function(){
-			Graph_Net();
-			updateTimer = $Q['timer'];
-			$C['TimerText'].innerHTML = updateTimer;
-			LoadTimer();
-		}).catch(function(err){ErrAlert('NetGraph', '')});
-	}).catch(function(err){ErrAlert('NetGraph', '')});
-	
-	if($Q['news']){
-		var n = document.getElementById('News'), c = document.getElementById('NewsCard'), h = '';
-		if(n != null && c.innerHTML === ''){
-			api('news').then(function(){
-				if($D['news'] && $D['news']['created']){
-					if(getCookie('News') == $D['news']['created']){
-						h = 'hide';
-					}else{
-						c.innerHTML = '<div class="txtmed">'+$D['news']['subject']+'<div id="NewsTime" class="txttny noselect">('+Ago($D['news']['created'], 'y')+')</div></div>'+
-							'<div id="NewsBody" class="txt">'+$D['news']['body'].replace(/^(<br>)/,'')+'</div>'+
-							'<div id="NewsClose" class="Btn32 Btn32Corner C1fl">'+$I['x']+'</div>';
-					}
-					n.className = h;
-				}
-			});
-		}
-	}
+function TimerUpdateData() {
+    api('block').then(() => {
+        ErrAlert('X');
+    }).catch(() => {
+        ErrAlert('NetGraph', '');
+    });
+
+    let minerHashesElem = document.getElementById('MinerHashes');
+    if (minerHashesElem) {
+        let typ = (minerHashesElem.innerHTML !== '--') ? 'refresh' : '';
+        Dash_load(typ);
+    }
+
+    api('pool').then(poolData => {
+        if (!poolData) return;
+
+        let minersElem = document.getElementById('miners');
+        let hashrateElem = document.getElementById('poolHashrate');
+
+        if (minersElem) minersElem.innerText = poolData.pool_statistics?.miners || "N/A";
+        if (hashrateElem) hashrateElem.innerText = fmtHR(poolData.pool_statistics?.hashRate || 0);
+
+        $D['net'] = [{
+            tme: Math.floor(Date.now() / 1000),
+            hash: String(poolData.pool_statistics?.hashRate || "0"),
+            difficulty: 0,
+            height: 0,
+            y: poolData.pool_statistics?.hashRate || 1
+        }];
+
+        if (typeof Graph_Net === "function") {
+            console.log("📊 Updating graph...");
+            Graph_Net();
+        } else {
+            console.warn("⚠ Graph_Net() not found!");
+        }
+
+        updateTimer = $Q['timer'];
+        let timerElem = document.getElementById("TimerText");
+        if (timerElem) timerElem.innerHTML = updateTimer;
+
+        LoadTimer();
+    }).catch(() => {
+        ErrAlert('NetGraph', '');
+    });
+
+    if ($Q['news']) {
+        let newsElem = document.getElementById('News');
+        let newsCard = document.getElementById('NewsCard');
+
+        if (newsElem !== null && newsCard.innerHTML === '') {
+            api('news').then(() => {
+                if ($D['news'] && $D['news']['created']) {
+                    if (getCookie('News') == $D['news']['created']) {
+                        newsElem.className = 'hide';
+                    } else {
+                        newsCard.innerHTML = `
+                            <div class="txtmed">${$D['news']['subject']}
+                                <div id="NewsTime" class="txttny noselect">(${Ago($D['news']['created'], 'y')})</div>
+                            </div>
+                            <div id="NewsBody" class="txt">${$D['news']['body'].replace(/^(<br>)/, '')}</div>
+                            <div id="NewsClose" class="Btn32 Btn32Corner C1fl">${$I['x']}</div>`;
+                    }
+                }
+            });
+        }
+    }
 }
 function Resize(){
 	clearTimeout(resizeTimer);
@@ -499,7 +658,7 @@ function Resize(){
 		var p = document.getElementById('MinerPaymentsPage');
 		if(p != null) MinerPaymentHistory(p.value);
 	}, 250);
-}
+} 
 function SwitchMode(){
 	var $CL = ['C0','C0fl','C0bk','C0st','C3','C3fl','FLD'],
 		$clr = {'l':{'f':'454545','b':'efefef'},'d':{'f':'b3b3b3','b':'3b3b3b'}},
@@ -1362,11 +1521,8 @@ var api = function(m, key, xid){
 				params = JSON.stringify(params);
 			}
 			
-			if(m === 'net'){
-				xhr.open('GET', 'https://supportxmr.com/api/'+url, true);
-			}else{
-				xhr.open('GET', $Q['api']+url, true);
-			}
+xhr.open('GET', $Q['api'] + url, true);
+
 			//xhr.open(method, $Q['api']+url, true);
 			xhr.setRequestHeader('Content-Type', 'application/json');
 			
