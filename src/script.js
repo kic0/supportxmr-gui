@@ -1103,53 +1103,72 @@ function Workers_detail(xid){
 }
 //Miner Payments
 function MinerPayments(typ) {
-	typ = typ || '';
-	if (addr && $A[addr] && $A[addr]['hashes'] && $A[addr]['hashes'] > 0) {
-		var m = document.getElementById('MinerPayments');
-		var n = document.getElementById('NewsBody');
+    typ = typ || '';
+    if (addr && $A[addr] && $A[addr]['hashes'] && $A[addr]['hashes'] > 0) {
+        var m = document.getElementById('MinerPayments');
+        var n = document.getElementById('NewsBody');
 
-		if (typ !== 'back' && (m.classList.contains('Opened') || m.classList.contains('OpenedBig'))) {
-			if (n) n.classList.remove('hide');
-			m.className = '';
-			m.innerHTML = '';
-			Dash_btn('loaded');
-			return;
-		} else {
-			if (n) n.classList.add('hide');
-			m.className = 'Opened';
-			m.innerHTML = '<div class="hbar"></div><div id="MinerPaymentsStage">' + $I['load'] + '</div>';
-			Dash_btn('closer');
-		}
-	} else {
-		return;
-	}
+        if (typ !== 'back' && (m.classList.contains('Opened') || m.classList.contains('OpenedBig'))) {
+            if (n) n.classList.remove('hide');
+            m.className = '';
+            m.innerHTML = '';
+            Dash_btn('loaded');
+            return;
+        } else {
+            if (n) n.classList.add('hide');
+            m.className = 'Opened';
+            m.innerHTML = '<div class="hbar"></div><div id="MinerPaymentsStage">' + $I['load'] + '</div>';
+            Dash_btn('closer');
+        }
+    } else {
+        return;
+    }
 
-	api('user').then(function () {
-		var t = $Q['pay']['min_inst'] + ' ' + $Q['cur']['sym'] + ' ' + $$['trn']['min'],
-			c = 'o5 nopoint',
-			mde = ($Q['dark']) ? 'd' : 'l',
-			ins = '';
+    api('user').then(function () {
+        var t = $Q['pay']['min_inst'] + ' ' + $Q['cur']['sym'] + ' ' + $$['trn']['min'];
+        var c = 'o5 nopoint';
+        var mde = ($Q['dark']) ? 'd' : 'l';
+        var isLight = document.body.classList.contains('C0bkl');
+        var ins = '';
 
-		if ($A[addr]['due'] >= $Q['pay']['min_inst']) {
-			t = 'Pay ' + $A[addr]['due'] + ' ' + $Q['cur']['sym'] + ' Now';
-			c = 'C2bk_hov';
-		}
+        if ($A[addr]['due'] >= $Q['pay']['min_inst']) {
+            t = 'Pay ' + $A[addr]['due'] + ' ' + $Q['cur']['sym'] + ' Now';
+            c = 'C2bk_hov';
+        }
 
-		ins = '<div class="LR50 shimtop20 C0' + mde + ' txtmed">' +
-			'<div id="InstaPayBtn" class="BtnElem C1bk ' + c + '">' + t + '</div>' +
-			'</div>' +
-			'<div id="PaymentHistory"><div class="LR50">' +
-			'<div class="C3' + mde + '" id="MinerPaymentsTable">' + $I['load'] + '</div>' +
-			'</div></div>';
+        // HTML com estilo aplicado se for modo claro
+        ins =
+            '<div class="LR50 shimtop20 C0' + mde + ' txtmed">' +
+                '<div id="InstaPayBtn" class="BtnElem C1bk ' + c + '"' +
+                    (isLight ? ' style=\'background-color:#161616;\'' : '') + '>' +
+                    t +
+                '</div>' +
+            '</div>' +
+            '<div id="PaymentHistory">' +
+                '<div class="LR50">' +
+                    '<div class="C3' + mde + '" id="MinerPaymentsTable">' +
+                        $I['load'] +
+                    '</div>' +
+                '</div>' +
+            '</div>';
 
-		document.getElementById('MinerPaymentsStage').innerHTML = ins;
+        document.getElementById('MinerPaymentsStage').innerHTML = ins;
 
-		api('pay', addr, 1).then(function () {
-			Tbl('MinerPaymentsTable', 'pay', 1, 10);
-		}).catch(function (err) {
-			console.log(err);
-		});
-	});
+        api('pay', addr, 1).then(function () {
+            Tbl('MinerPaymentsTable', 'pay', 1, 10);
+
+            // ⚠️ Aplica cor à tabela depois de renderizar
+            if (isLight) {
+                const table = document.querySelector('#MinerPaymentsTable table');
+                if (table) {
+                    table.style.color = '#191818';
+                }
+            }
+
+        }).catch(function (err) {
+            console.log(err);
+        });
+    });
 }
 
 function MinerPaymentHistory(pge){
