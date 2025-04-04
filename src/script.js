@@ -1,10 +1,10 @@
 var	mde = 'l',
 	$Q = {										
 		'pool':{
-			'nme':'SupportXMR',										//also sets the cookie prefix
+			'nme':'pool.xmr.pt',										//also sets the cookie prefix
 		},
 		'clr':{
-			'main':'f06923',										//C1
+			'main':'7a7a7a',										//C1
 			'secondary':'818181',									//C2
 			'back-l':'e8e8e8',										//C0 - light
 			'back-d':'313131'	   									//C0 - dark
@@ -15,22 +15,21 @@ var	mde = 'l',
 			'blk':2,												//blocktime in minutes
 			'reg':/^[4|8]{1}([A-Za-z0-9]{105}|[A-Za-z0-9]{94})$/	//address regex
 		},
-		'api':'https://supportxmr.com/api/',
-		//'api':'http://69.164.198.226/api/',
-		'explorer':'https://xmrchain.net/block/',
-		'explorertx':'https://xmrchain.net/tx/',
+		'api':'https://pool.xmr.pt/api/',
+		'explorer':'https://explorer.xmr.pt/block/',
+		'explorertx':'https://explorer.xmr.pt/tx/',
 		'news':false,												//enable news (motd) alerts on homepage
-		'email':false,												//enable email notifications
+		'email':true,												//enable email notifications
 		'timer':60,													//refresh timer in seconds
 		'graph':{
 			'hrs':8,												//max chart length in hours
 			'pplns':false,											//show pplns window on chart
-			'blockmin':25											//min number of blocks to show (blocks take their own time scale) max 100
+			'blockmin':50											//min number of blocks to show (blocks take their own time scale) max 100
 		},
 		'pay':{
-			'min_inst':0.01,										//minimum for instant pay
-			'min_auto':0.1,											//minimum for automatic threshold
-			'dec_auto':4											//decimal places for threshold
+			'min_inst':0.2,										//minimum for instant pay
+			'min_auto':0.2,											//minimum for automatic threshold
+			'dec_auto':6											//decimal places for threshold
 		}
 	},
 	$$ = {
@@ -42,7 +41,7 @@ var	mde = 'l',
 		},
 		'hlp':{
 			'head':'Welcome to '+$Q['pool']['nme'],
-			'text':'Getting started is easy and this pool has a large and friendly community that are happy to help you. The pool operators are M5M400 and Snipa22 who can be reached in the #monero-pools IRC or at <a href="mailto:support@supportxmr.com" class="C1 hov">support@supportxmr.com</a>. Please be patient and someone will get back to you. Most of the time help can be found quicker in the chat. The pool has a quite stable and knowlegable community - you can join the chat and seek help and a friendly chat there :)'
+			'text':'Getting started is easy and this pool has a friendly community that are happy to help you. The pool operators can be reached in the #monero-pt IRC or at <a href="mailto:pool@xmr.pt" class="C1 hov">pool@xmr.pt</a>. Please be patient and someone will get back to you. Most of the time help can be found quicker in the chat. The pool has a quite stable and knowlegable community - you can join the chat and seek help and a friendly chat there'
 		},
 		'msg':{
 			'welcome':{'head':'Welcome to '+$Q['pool']['nme'], 'text':'Visit the <u class="nav C1" data-tar="help">help section</u> to get setup, then enter your '+$Q['cur']['nme']+' address above. After you\'ve submitted a share, your stats will appear here.'},
@@ -105,6 +104,141 @@ var	mde = 'l',
 /*--------------------------------------*/
 /*-----End of Customization Section------- (You can customize the rest, but shouldn't need to) */
 /*--------------------------------------*/
+//new data input
+
+document.addEventListener("DOMContentLoaded", () => {
+    const mode = localStorage.getItem("mode");
+    document.body.classList.add(mode === "lightmode" ? "lightmode" : "darkmode");
+
+    resetUpdateTimers(true);
+
+    const refreshBtn = document.getElementById("TimerRefresh");
+    if (refreshBtn) {
+        refreshBtn.addEventListener("click", () => resetUpdateTimers(true));
+    }
+});
+
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+        resetUpdateTimers(true);
+    }
+});
+
+function startFullUpdate() {
+    TimerLoading("on");
+    setStatsLoading();
+    upd();
+}
+
+function resetUpdateTimers(forceUpdate = false) {
+    if (window.updateInterval) clearInterval(window.updateInterval);
+    if (window.updateCounter) clearInterval(window.updateCounter); // opcional, caso usado
+
+    // Reset visual e contador
+    LoadTimer();
+
+    if (forceUpdate) startFullUpdate();
+
+    // Intervalo para updates automáticos
+    window.updateInterval = setInterval(() => {
+        LoadTimer();
+        startFullUpdate();
+    }, $Q.timer * 1000);
+}
+
+function upd() {
+    Promise.all([
+        fetch("https://pool.xmr.pt/api/pool/stats").then(r => r.json()).catch(() => null),
+        fetch("https://pool.xmr.pt/api/network/stats").then(r => r.json()).catch(() => null),
+        fetch("https://pool.xmr.pt/api/pool/blocks?limit=1").then(r => r.json()).catch(() => null)
+    ])
+    .then(([p, n, b]) => {
+        if (!p || !n) {
+            showStatsFallback("Unable to load stats.");
+            return;
+        }
+
+        updateElement("miners", `Miners: ${typeof p.pool_statistics.miners === "number" ? p.pool_statistics.miners : "--"}`);
+        updateElement("poolHashrate", `Pool Hashrate: ${formatHashrate(p.pool_statistics.hashRate)}`);
+        const globalHash = (n.difficulty && n.difficulty > 0) ? (n.difficulty / 120) : 1;
+        updateElement("globalHashrate", `Global Hashrate: ${formatHashrate(globalHash)}`);
+
+        if (b && b[0] && b[0].ts) {
+            const lastTs = Math.floor(b[0].ts / 1000);
+            updateElement("lastBlock", `Last Block: ${timeAgo(lastTs)}`);
+        }
+
+        if (typeof window.$D === "undefined") window.$D = { net: [{}] };
+        $D.net = [{
+            tme: Math.floor(Date.now() / 1000),
+            hash: globalHash,
+            difficulty: n.difficulty ?? 0,
+            height: n.height ?? 0,
+            y: globalHash || 1
+        }];
+
+        if (typeof Graph_Net === "function") {
+    setTimeout(() => {
+        Graph_Net();
+        window.dispatchEvent(new Event('resize'));
+    }, 10);
+}
+
+
+        TimerLoading("off");
+    });
+}
+
+function TimerLoading(sts) {
+    const loader = document.getElementById("TimerLoader");
+    if (!loader) return;
+    if (sts === "on") {
+        loader.classList.remove("hide");
+        setTimeout(() => loader.classList.add("hide"), 1000);
+    } else {
+        loader.classList.add("hide");
+    }
+}
+
+function setStatsLoading() {
+    updateElement("miners", "");
+    updateElement("poolHashrate", "");
+    updateElement("globalHashrate", "");
+    updateElement("lastBlock", "");
+}
+
+function showStatsFallback(msg) {
+    const statsEl = document.getElementById("GraphStats");
+    if (statsEl) statsEl.innerHTML = `<span>${msg}</span>`;
+}
+
+function updateElement(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.innerText = value ?? "--";
+}
+
+function formatHashrate(h) {
+    if (!h || isNaN(h)) return "--";
+    let units = ["H/s", "KH/s", "MH/s", "GH/s", "TH/s", "PH/s"], i = 0;
+    while (h >= 1000 && i < units.length - 1) h /= 1000, i++;
+    return `${h.toFixed(2)} ${units[i]}`;
+}
+
+function timeAgo(timestamp) {
+    const now = Math.floor(Date.now() / 1000);
+    let diff = now - timestamp;
+    const days = Math.floor(diff / 86400); diff %= 86400;
+    const hours = Math.floor(diff / 3600); diff %= 3600;
+    const minutes = Math.floor(diff / 60);
+
+    let result = '';
+    if (days > 0) result += `${days} day${days > 1 ? "s" : ""} `;
+    if (hours > 0) result += `${hours} hour${hours > 1 ? "s" : ""} `;
+    if (minutes > 0) result += `${minutes} min${minutes > 1 ? "s" : ""} `;
+    return result.trim() || "just now";
+}
+
+//end of new data input
 
 var addr = UrlVars()['addr'] || '',
 	pref = 'LNA',
@@ -224,8 +358,8 @@ document.body.addEventListener('click', function(e){
 			}else if(id[i] === '#NewsClose'){
 				document.getElementById('News').className = 'hide';
 				setCookie('News', $D['news']['created']);
-			}else if(id[i] === '#InstaPayBtn'){
-				InstaPay();
+//			}else if(id[i] === '#InstaPayBtn'){
+//				InstaPay();
 			}else if(id[i] === '#AutoPayBtn'){
 				AutoPay();
 			}else if(id[i] === '#PaymentHistoryBtn'){
@@ -234,11 +368,11 @@ document.body.addEventListener('click', function(e){
 				MinerPayments('back');
 			}else if(id[i] === '#EmailToggleBtn'){
 				EmailToggle();
-			}else if(id[i] === '#InstaPayBtn'){
-				document.getElementById('MinerPaymentsMenu').innerHTML = $I['load'];
-				setTimeout(function(){
-					document.getElementById('MinerPaymentsMenu').innerHTML = '<div class="center C3'+mde+' txt">Demo - Need Endpoint</div>';
-				}, 1500);
+//			}else if(id[i] === '#InstaPayBtn'){
+//				document.getElementById('MinerPaymentsMenu').innerHTML = $I['load'];
+//				setTimeout(function(){
+//					document.getElementById('MinerPaymentsMenu').innerHTML = '<div class="center C3'+mde+' txt">Demo - Need Endpoint</div>';
+//				}, 1500);
 			}else if(id[i] === '#AddrDelete'){
 				SaveAddr($C['AddrField'].value, 'del');
 			}else if(id[i] === '#WorkerPopClose'){
@@ -413,81 +547,119 @@ function ErrAlert(tar, err){
 		}
 	}
 }
-function LoadTimer(){
-	clearInterval(updateCounter);
-	TimerLoading('off');
-	updateCounter = setInterval(function(){
-		if(document.hasFocus()){
-			if(outoffocus > 120){
-				//if returning after long absence
-				updateTimer = 0;
-				outoffocus = 0;
-			}else{
-				updateTimer--;
-			}
-		}else{
-			if(outoffocus < 122) outoffocus++;
-		}
-		if(updateTimer <= 0){
-			TimerLoading('on');
-			clearInterval(updateCounter);
-			setTimeout(function(){
-				TimerUpdateData();
-			}, 1500);
-		}else{
-			var clr = (mde === 'd') ? $Q['clr']['back-d'] : $Q['clr']['back-l'],
-				grd = 'linear-gradient('+(-90 + (360 * updateTimer / $Q['timer']))+'deg, transparent 50%, #F06A25';
-				
-			if(updateTimer < ($Q['timer'] / 2)) grd = 'linear-gradient('+(90 + (360 * updateTimer / $Q['timer']))+'deg, transparent 50%, #'+clr;
-			$C['TimerPie'].style.backgroundImage = grd+' 50%),linear-gradient(90deg, #'+clr+' 50%, transparent 50%)';
-			$C['TimerText'].innerHTML = updateTimer;
-		}
-	}, 1000);
+let timerStart = Date.now();
+
+function LoadTimer() {
+    clearInterval(updateCounter);
+    TimerLoading('off');
+    timerStart = Date.now();
+    updateTimer = $Q.timer;
+
+    updateCounter = setInterval(function () {
+        const elapsed = Math.floor((Date.now() - timerStart) / 1000);
+        updateTimer = Math.max($Q.timer - elapsed, 0);
+
+        if (updateTimer <= 0) {
+            TimerLoading('on');
+            clearInterval(updateCounter);
+            setTimeout(function () {
+                upd();  
+                TimerUpdateData(); 
+            }, 1500);
+        } else {
+            var clr = (mde === 'd') ? $Q['clr']['back-d'] : $Q['clr']['back-l'];
+            var grd = 'linear-gradient(' + (-90 + (360 * updateTimer / $Q['timer'])) + 'deg, transparent 50%, #7A7A7A';
+            if (updateTimer < ($Q['timer'] / 2)) {
+                grd = 'linear-gradient(' + (90 + (360 * updateTimer / $Q['timer'])) + 'deg, transparent 50%, #' + clr;
+            }
+            $C['TimerPie'].style.backgroundImage = grd + ' 50%),linear-gradient(90deg, #' + clr + ' 50%, transparent 50%)';
+            $C['TimerText'].innerHTML = updateTimer;
+        }
+    }, 1000);
 }
-function TimerLoading(sts){
+
+window.addEventListener("focus", () => {
+    const elapsed = Math.floor((Date.now() - timerStart) / 1000);
+    updateTimer = Math.max($Q.timer - elapsed, 0);
+    $C['TimerText'].innerHTML = updateTimer;
+});
+function TimerLoading(sts) {
 	var l = document.getElementById('TimerLoader');
-	if(sts === 'on'){
+	if (!l) return;
+	if (sts === 'on') {
 		l.classList.remove('hide');
-	}else{
+		setTimeout(() => l.classList.add('hide'), 1000);
+	} else {
 		l.classList.add('hide');
 	}
 }
-function TimerUpdateData(){
-	api('block').then(function(){
-		ErrAlert('X');
-	}).catch(function(err){ErrAlert('NetGraph', '')});
-	
-	var l = document.getElementById('MinerHashes');
-	if(l){
-		var typ = (l.innerHTML !== '--') ? 'refresh' : '';
-		Dash_load(typ);
-	}
-	api('net').then(function(){
-		api('pool').then(function(){
-			Graph_Net();
-			updateTimer = $Q['timer'];
-			$C['TimerText'].innerHTML = updateTimer;
-			LoadTimer();
-		}).catch(function(err){ErrAlert('NetGraph', '')});
-	}).catch(function(err){ErrAlert('NetGraph', '')});
-	
-	if($Q['news']){
-		var n = document.getElementById('News'), c = document.getElementById('NewsCard'), h = '';
-		if(n != null && c.innerHTML === ''){
-			api('news').then(function(){
-				if($D['news'] && $D['news']['created']){
-					if(getCookie('News') == $D['news']['created']){
-						h = 'hide';
-					}else{
-						c.innerHTML = '<div class="txtmed">'+$D['news']['subject']+'<div id="NewsTime" class="txttny noselect">('+Ago($D['news']['created'], 'y')+')</div></div>'+
-							'<div id="NewsBody" class="txt">'+$D['news']['body'].replace(/^(<br>)/,'')+'</div>'+
-							'<div id="NewsClose" class="Btn32 Btn32Corner C1fl">'+$I['x']+'</div>';
-					}
-					n.className = h;
-				}
-			});
-		}
-	}
+function TimerUpdateData() {
+    api('block').then(() => {
+        ErrAlert('X');
+    }).catch(() => {
+        ErrAlert('NetGraph', '');
+    });
+
+    let minerHashesElem = document.getElementById('MinerHashes');
+    if (minerHashesElem) {
+        let typ = (minerHashesElem.innerHTML !== '--') ? 'refresh' : '';
+        Dash_load(typ);
+    }
+
+    api('pool').then(poolData => {
+        if (!poolData) return;
+
+        let minersElem = document.getElementById('miners');
+        let hashrateElem = document.getElementById('poolHashrate');
+
+        if (minersElem) minersElem.innerText = poolData.pool_statistics?.miners || "N/A";
+        if (hashrateElem) hashrateElem.innerText = fmtHR(poolData.pool_statistics?.hashRate || 0);
+
+        $D['net'] = [{
+            tme: Math.floor(Date.now() / 1000),
+            hash: String(poolData.pool_statistics?.hashRate || "0"),
+            difficulty: 0,
+            height: 0,
+            y: poolData.pool_statistics?.hashRate || 1
+        }];
+
+        if (typeof Graph_Net === "function") {
+            console.log("📊 Updating graph...");
+            Graph_Net();
+        } else {
+            console.warn("⚠ Graph_Net() not found!");
+        }
+
+        updateTimer = $Q['timer'];
+        let timerElem = document.getElementById("TimerText");
+        if (timerElem) timerElem.innerHTML = updateTimer;
+
+        LoadTimer();
+    }).catch(() => {
+        ErrAlert('NetGraph', '');
+    });
+
+    if ($Q['news']) {
+        let newsElem = document.getElementById('News');
+        let newsCard = document.getElementById('NewsCard');
+
+        if (newsElem !== null && newsCard.innerHTML === '') {
+            api('news').then(() => {
+                if ($D['news'] && $D['news']['created']) {
+                    if (getCookie('News') == $D['news']['created']) {
+                        newsElem.className = 'hide';
+                    } else {
+                        newsCard.innerHTML = `
+                            <div class="txtmed">${$D['news']['subject']}
+                                <div id="NewsTime" class="txttny noselect">(${Ago($D['news']['created'], 'y')})</div>
+                            </div>
+                            <div id="NewsBody" class="txt">${$D['news']['body'].replace(/^(<br>)/, '')}</div>
+                            <div id="NewsClose" class="Btn32 Btn32Corner C1fl">${$I['x']}</div>`;
+                    }
+                }
+            });
+        }
+    }
 }
 function Resize(){
 	clearTimeout(resizeTimer);
@@ -500,7 +672,7 @@ function Resize(){
 		var p = document.getElementById('MinerPaymentsPage');
 		if(p != null) MinerPaymentHistory(p.value);
 	}, 250);
-}
+} 
 function SwitchMode(){
 	var $CL = ['C0','C0fl','C0bk','C0st','C3','C3fl','FLD'],
 		$clr = {'l':{'f':'454545','b':'efefef'},'d':{'f':'b3b3b3','b':'3b3b3b'}},
@@ -615,52 +787,31 @@ function Navigate(tar){
 	}, 300);
 }
 //Dash
+delete $$['sts']['MinerCalc'];
 function Dash_init(){
-	var $S = ['SplitL', 'SplitR'],
-		ins = '<div id="News" class="hide"><div id="NewsCard" class="LR85 C0bk'+mde+' C3'+mde+' shimtop20"></div></div>'+
+	var ins = '<div id="News" class="hide"><div id="NewsCard" class="LR85 C0bk'+mde+' C3'+mde+' shimtop20"></div></div>'+
 		'<div id="MinerPayments"></div>'+
 		'<div id="MinerGraph"></div>'+
 		'<div id="MinerDash" class="LR85 txtbig C3'+mde+' hide"></div>'+
 		'<div id="WorkerList" class="LR85 shimtop20"></div>';
 
 	$C['Stage'].innerHTML = ins;
-	
-	ins = '';	
-	for(var j = 0; j < 2; j++){
-		ins += '<div class="'+$S[j]+'">';
-		var i = 0;
-		for(var k in $$['sts']){
-			if((j === 0 && i < 2) || (j === 1 && i >= 2)){
-				var d = $$['sts'][k]['def'] || '--';
-				ins += '<div class="Spl">'+
-					'<div id="'+k+'">'+d+'</div>'+
-					'<div class="hbar shim4 o8"></div>'+
-					'<div class="C2 txttny">'+$$['sts'][k]['lbl']+'</div>'+
-				'</div>';
-			}
-			i++;
-		}
-		ins += '</div>';
+
+	var keys = Object.keys($$['sts']).filter(k => k !== 'MinerCalc');
+
+	ins = '<div class="SplitCenter">';
+	for (var i = 0; i < keys.length; i++) {
+		var k = keys[i];
+		var d = $$['sts'][k]['def'] || '--';
+		ins += '<div class="Spl">'+
+			'<div id="'+k+'">'+d+'</div>'+
+			'<div class="hbar shim4 o8"></div>'+
+			'<div class="C2 txttny">'+$$['sts'][k]['lbl']+'</div>'+
+		'</div>';
 	}
+	ins += '</div>';
+
 	document.getElementById('MinerDash').innerHTML = ins;
-	var f = document.getElementById('MinerCalcFld'),
-		h = document.getElementById('MinerCalcHsh'),
-		u = document.getElementById('MinerCalcUnit');
-		
-	ins = '';
-	for(var k in $$['calc']){
-		ins += '<option value="'+k+'">'+$$['calc'][k]+'</option>';
-	}
-	f.innerHTML = ins;
-	f.className = 'FrmElem txttny C0'+mde+' C1bk';
-	ins = '';
-	for(var k in $D['hashconv']){
-		ins += '<option value="'+k+'">'+k+'/s</option>';
-	}
-	u.innerHTML = ins;
-	u.value = 'H';
-	u.className = 'FrmElem txttny C0'+mde+' C1bk';
-	h.className = 'FrmElem txttny C0'+mde+' C1bk';
 }
 function Dash_load(typ){
 	var m = document.getElementById('MinerGraph'),
@@ -951,144 +1102,67 @@ function Workers_detail(xid){
 	}
 }
 //Miner Payments
-function MinerPayments(typ){
+function MinerPayments(typ) {
 	typ = typ || '';
-	if(addr && $A[addr] && $A[addr]['hashes'] && $A[addr]['hashes'] > 0){
-		var m = document.getElementById('MinerPayments'), n = document.getElementById('NewsBody');
-		if(typ !== 'back' && (m.classList.contains('Opened') || m.classList.contains('OpenedBig'))){
-			if(n) n.classList.remove('hide');
+	if (addr && $A[addr] && $A[addr]['hashes'] && $A[addr]['hashes'] > 0) {
+		var m = document.getElementById('MinerPayments');
+		var n = document.getElementById('NewsBody');
+
+		if (typ !== 'back' && (m.classList.contains('Opened') || m.classList.contains('OpenedBig'))) {
+			if (n) n.classList.remove('hide');
 			m.className = '';
 			m.innerHTML = '';
 			Dash_btn('loaded');
 			return;
-		}else{
-			if(n) n.classList.add('hide');
+		} else {
+			if (n) n.classList.add('hide');
 			m.className = 'Opened';
-			m.innerHTML = '<div class="hbar"></div><div id="MinerPaymentsStage">'+$I['load']+'</div>';
+			m.innerHTML = '<div class="hbar"></div><div id="MinerPaymentsStage">' + $I['load'] + '</div>';
 			Dash_btn('closer');
 		}
-	}else{
+	} else {
 		return;
 	}
-	
-	api('user').then(function(){
-		var t = $Q['pay']['min_inst']+' '+$Q['cur']['sym']+' '+$$['trn']['min'],
+
+	api('user').then(function () {
+		var t = $Q['pay']['min_inst'] + ' ' + $Q['cur']['sym'] + ' ' + $$['trn']['min'],
 			c = 'o5 nopoint',
-			eml = ($Q['email']) ? 'EmailTog' : '',
+			mde = ($Q['dark']) ? 'd' : 'l',
 			ins = '';
-			
-		if($A[addr]['due'] >= $Q['pay']['min_inst']){
-			t = 'Pay '+$A[addr]['due']+' '+$Q['cur']['sym']+' Now';
+
+		if ($A[addr]['due'] >= $Q['pay']['min_inst']) {
+			t = 'Pay ' + $A[addr]['due'] + ' ' + $Q['cur']['sym'] + ' Now';
 			c = 'C2bk_hov';
 		}
-		ins = '<div class="LR50 shimtop20 C0'+mde+' txtmed">'+
-			'<div id="InstaPayBtn" class="BtnElem C1bk '+c+'">'+t+'</div><div class="hbar shim10"></div>'+
-			'<input type="text" id="AutoPayFld" class="FrmElem txt C0bk'+mde+' C3'+mde+' C1br" autocomplete="off" placeholder="Auto Pay Amount...">'+
-			'<div id="AutoPayBtn" class="BtnElem C1bk C2bk_hov o5">'+$$['trn']['set']+'</div><div class="hbar shim10"></div>'+
-		'</div>'+
-		'<div id="PaymentHistory"><div class="LR50">'+
-			'<div id="PaymentHistoryBtn" class="BtnElem '+eml+' C0'+mde+' txtmed C1bk C2bk_hov">'+$$['trn']['vwpy']+'</div>';
-		
-		if($Q['email']){
-			var check = $I['x'],
-				lbl = $$['trn']['eml_off'];
-			
-			if($A[addr]['email'] == '1'){
-				check = $I['check'];
-				lbl = $$['trn']['eml_on'];
-			}
-			
-			ins += '<div id="EmailToggleBtn" class="BtnElem DiscMde C1bk C2bk_hov">'+
-				'<div class="DiscIcon C0bk'+mde+' C1fl">'+check+'</div><span id="EmailToggleLbl" class="C0'+mde+' txtmed">'+lbl+'</span>'+
-			'</div>';
-		}
-		ins += '</div></div>';
-		
-		document.getElementById('MinerPaymentsStage').innerHTML = ins;
-		if($A[addr]['threshold'] > 0) document.getElementById('AutoPayFld').value = Rnd($A[addr]['threshold'], $Q['pay']['dec_auto'], 'txt');
-	});
-}
-function EmailToggle(){
-	var ic = document.querySelector('#EmailToggleBtn .DiscIcon');
-	ic.classList.add('preload');
-	ic.innerHTML = $I['load'];
-	api('toggleEmail').then(function(){
-		api('user').then(function(){
-			var ico = $I['x'],
-				lbl = $$['trn']['eml_off'];
-				
-			if($A[addr]['email'] == '1'){
-				ico = $I['check'];
-				lbl = $$['trn']['eml_on'];
-			}
-				
-			ic.classList.remove('preload');
-			ic.innerHTML = ico;
-			document.getElementById('EmailToggleLbl').innerHTML = lbl;
-		});
-	});
-}
-function InstaPay(){
-	var b = document.getElementById('InstaPayBtn'), c = 'C4bk', t;
-	b.innerHTML = '<div class="C0fl'+mde+' preload">'+$I['refresh']+'</div>';
-	api('forcepayment').then(function(sts){
-		b.classList.remove('C1bk','C4bk','C5bk');
-		t = sts['msg'];
-		if(sts && sts['msg'] && sts['msg'] === 'Payout scheduled'){
-			c = 'C5bk';
-			t = $$['trn']['que'];
-		}
-		b.classList.add(c);
-		b.innerHTML = t;
-	});	
-}
-function AutoPay(s){
-	var c = AutoPayCheck(),
-		b = document.getElementById('AutoPayBtn');
-	
-	if(c === 'OK'){
-		b.classList.remove('C1bk','C4bk','C5bk');
-		b.innerHTML = $I['load'];
-		api('updatethreshold', '', NumInput(document.getElementById('AutoPayFld').value)).then(function(){
-			b.classList.add('C5bk');
-			b.innerHTML = $$['trn']['updt'];
-		});
-	}
-}
-function AutoPayCheck(){
-	var b = document.getElementById('AutoPayBtn'),
-		b_ins = $$['trn']['set'],
-		f = document.getElementById('AutoPayFld'),
-		val_num = NumInput(f.value),
-		r = 'err';
 
-	b.classList.remove('C1bk','C4bk','C5bk','o5');
-	f.classList.remove('C4','C4br');
-	if(val_num < $Q['pay']['min_auto']){
-		b.classList.add('C4bk');
-		b_ins = $Q['pay']['min_auto']+' '+$Q['cur']['sym']+' '+$$['trn']['min'];
-		f.classList.add('C4', 'C4br');
-	}else if(val_num >= $Q['pay']['min_auto']){
-		b.classList.add('C1bk');
-		r = 'OK';
-	}else{
-		b.classList.add('C1bk', 'o5');
-	}
-	b.innerHTML = b_ins;
-	f.value = Rnd(val_num, $Q['pay']['dec_auto'], 'txt');
-	return r;
+		ins = '<div class="LR50 shimtop20 C0' + mde + ' txtmed">' +
+			'<div id="InstaPayBtn" class="BtnElem C1bk ' + c + '">' + t + '</div>' +
+			'</div>' +
+			'<div id="PaymentHistory"><div class="LR50">' +
+			'<div class="C3' + mde + '" id="MinerPaymentsTable">' + $I['load'] + '</div>' +
+			'</div></div>';
+
+		document.getElementById('MinerPaymentsStage').innerHTML = ins;
+
+		api('pay', addr, 1).then(function () {
+			Tbl('MinerPaymentsTable', 'pay', 1, 10);
+		}).catch(function (err) {
+			console.log(err);
+		});
+	});
 }
+
 function MinerPaymentHistory(pge){
 	pge = (pge > 1) ? pge : 1;
-	document.getElementById('MinerPayments').className = 'OpenedBig';
-	document.getElementById('PaymentHistory').innerHTML = '<div class="LR85"><div id="PaymentHistoryBtnClose" class="BtnElem C0'+mde+' txtmed C1bk C2bk_hov">Close Payment History</div>'+
-		'<div id="MinerPaymentsTable" class="C3'+mde+'">'+$I['load']+'</div></div>'+
-		'<input type="hidden" id="MinerPaymentsPage" value="'+pge+'">';
-		
+	document.getElementById('MinerPaymentsTable').innerHTML = $I['load'];
+
 	api('pay', addr, pge).then(function(){
 		Tbl('MinerPaymentsTable', 'pay', pge, 10);
-	}).catch(function(err){console.log(err)});
+	}).catch(function(err){
+		console.log(err);
+	});
 }
+
 //Other Pages
 function dta_Blocks(pge){
 	api('poolstats').then(function(){
@@ -1117,7 +1191,7 @@ function dta_Payments(pge){
 }
 function dta_Help(){
 	document.getElementById('PageTopL').innerHTML = $$['hlp']['head'];
-	document.getElementById('PageTopR').innerHTML = '<span class="txttny C2">Join Us on IRC<br>#monero-pools</span>';
+	document.getElementById('PageTopR').innerHTML = '<span class="txttny C2">Join Us on IRC<br>#monero-pt</span>';
 	var ins = '<p>'+$$['hlp']['text']+'</p>'+
 		'<div class="helpgroup">'+
 			'<div class="helptitle txtbig">Step 1 - Install Wallet & Create Address<div class="btnback">'+$I['arrow']+'</div></div>'+
@@ -1135,10 +1209,12 @@ function dta_Help(){
 					'<td NOWRAP>'+
 						'<i>Alphabetically</i><br>'+
 						'<a href="https://github.com/KlausT/ccminer-cryptonight/releases" class="C1 hov" target="_blank">ccminer-cryptonight</a> (Nvidia)<br>'+
-						'<a href="https://bitcointalk.org/index.php?topic=638915.0" class="C1 hov" target="_blank">Claymore\'s miner</a> (CPU, AMD)<br>'+
+                                                '<a href="https://github.com/Dead2/CryptoGoblin/releases" class="C1 hov" target="_blank">CryptoGoblin</a> (CPU, Nvidia, AMD)<br>'+
+//						'<a href="https://bitcointalk.org/index.php?topic=638915.0" class="C1 hov" target="_blank">Claymore\'s miner</a> (CPU, AMD)<br>'+
 					'</td>'+
 					'<td NOWRAP>'+
-						'<a href="https://github.com/Dead2/CryptoGoblin/releases" class="C1 hov" target="_blank">CryptoGoblin</a> (CPU, Nvidia, AMD)<br>'+
+//						'<a href="https://github.com/Dead2/CryptoGoblin/releases" class="C1 hov" target="_blank">CryptoGoblin</a> (CPU, Nvidia, AMD)<br>'+
+						'<p>'+
 						'<a href="https://github.com/xmrig/xmrig/" class="C1 hov" target="_blank">XMRig</a> (CPU, Nvidia, AMD)<br>'+
 						'<a href="https://github.com/fireice-uk/xmr-stak/releases" class="C1 hov" target="_blank">XMR-Stak</a> (CPU, Nvidia, AMD)'+
 					'</td>'+
@@ -1150,17 +1226,17 @@ function dta_Help(){
 			'<div class="helpteaser">Select a pool server and port and configure you miner.</div>'+
 			'<div class="helpcontent hide">'+
 				'<p>Each mining software will have it\'s own config, but they will all ask for the same information:</p>'+
-				'<p><b>Your Monero Address</b><br>Often this will be labeled username, but check the instructions. You can specify a paymentID by using the following format: <i>address</i>.<i>paymentID</i></p>'+
-				'<p><b>Pool Address</b><br>The miner will want a url and a port, like this: pool.supportxmr.com:3333</p>'+
+				'<p><b>Your Monero Address</b><br>Often this will be labeled username, but check the instructions.</p>'+ // You can specify a paymentID by using the following format: <i>address</i>.<i>paymentID</i></p>'+
+				'<p><b>Pool Address</b><br>The miner will want a url and a port, like this: pool.xmr.pt:3333</p>'+
 				'<p><table class="txtsmall C3'+mde+'"><tr>'+
 					'<td>'+
 						'<p>Port descriptions:</p>'+
 						'<ul><li>3333 Low-end CPU</li><li>5555 Fast/Multi CPU</li><li>7777 GPU rigs</li><li>9000 SSL/TLS</li></ul>'+
 					'</td>'+
-					'<td>'+
-						'<p>If you can\'t get through firewall, try these:</p>'+
-						'<ul><li>8080 Firewall bypass</li><li>80 Firewall bypass</li><li>443 Firewall bypass w/SSL/TLS</li></ul>'+
-					'</td>'+
+//					'<td>'+
+//						'<p>If you can\'t get through firewall, try these:</p>'+
+//						'<ul><li>8080 Firewall bypass</li><li>80 Firewall bypass</li><li>443 Firewall bypass w/SSL/TLS</li></ul>'+
+//					'</td>'+
 				'</tr></table></p>'+
 				'<p><b>Optional Fields</b><br>You can also set worker names or fixed difficulty through the configuration.</p>'+
 				'<p>Standard wallet address<br><i>(e.g. miner.exe -u 43T...sUW -p Steve)</i></p>'+
@@ -1172,8 +1248,8 @@ function dta_Help(){
 			'<div class="helpteaser">Launch the miner and learn more.</div>'+
 			'<div class="helpcontent hide">'+
 				'<p>This pool uses PPLNS to determine payouts. It helps to combat pool hopping and ensures a good payout for miners.</p>'+
-				'<p>'+Perc('0.6')+' Pool Fee</p>'+
-				'<p>0.1 XMR Default Payout</p>'+
+				'<p>'+Perc('0.4')+' Pool Fee</p>'+
+				'<p>0.2 XMR Default Payout</p>'+
 				'<p>60 Block Confirmation Time</p>'+
 			'</div>'+
 		'</div>';
@@ -1203,16 +1279,17 @@ var api = function(m, key, xid){
 	}else if(m === 'netheight' && now > ($U['netheight'] + 180)){
 		url = 'network/stats';
 	}else if(m === 'poolpay'){
-		url = 'pool/payments?page='+((key - 1) * xid)+'&limit='+xid;
+//		url = 'pool/payments?page='+((key - 1) * xid)+'&limit='+xid;
+                url = 'pool/payments?page='+(key - 1)+'&limit='+xid;
 	}else if(m === 'poolstats' && now > ($U['poolstats'] + 180)){
 		url = 'pool/stats';
 	}else if(m === 'account'){
 		url = 'miner/'+addr+'/stats';
 	}else if(m === 'pay'){
-		url = 'miner/'+key+'/payments';
+		url = 'miner/'+addr+'/payments';
 		if(xid){
-			xid = (xid > 1) ? (xid - 1) * 10 : 0;
-			url += '?page='+xid+'&limit=10';
+			xid = (xid > 1) ? (xid - 1) * 1 : 0;
+			url += '?page='+xid+'&limit=5';
 		}
 	}else if(m === 'workers' && (isEmpty($A[addr]['wrkrs']) || now > ($A[addr]['wrkrs_updt'] + 120))){
 		url = 'miner/'+addr+'/identifiers';
@@ -1225,14 +1302,14 @@ var api = function(m, key, xid){
 		}
 	}else if(m === 'workerdetail'){
 		url = 'miner/'+addr+'/stats/'+xid;
-	}else if(m === 'user' && addr){
-		url = 'user/'+addr;
+//	}else if(m === 'user' && addr){
+//		url = 'user/'+addr;
 	}else if(m === 'updatethreshold'){
-		url = 'user/updateThreshold';
-	}else if(m === 'forcepayment'){
-		url = 'user/forcePayment';
+		url = 'authed/updateThreshold';
+//	}else if(m === 'forcepayment'){
+//		url = 'user/forcePayment';
 	}else if(m === 'toggleEmail'){
-		url = 'user/toggleEmail';
+		url = 'authed/toggleEmail';
 	}
 
 	return new Promise(function (resolve, reject){
@@ -1360,7 +1437,9 @@ var api = function(m, key, xid){
 				params = JSON.stringify(params);
 			}
 			
-			xhr.open(method, $Q['api']+url, true);
+xhr.open('GET', $Q['api'] + url, true);
+
+			//xhr.open(method, $Q['api']+url, true);
 			xhr.setRequestHeader('Content-Type', 'application/json');
 			
 			if(method === 'POST'){
@@ -2187,6 +2266,6 @@ function getCookie(n){
     }
     return null;
 }
-function delCookie(n){   
+function delCookie(n){  
     document.cookie = n+'=; Max-Age=-99999999;';  
 }
