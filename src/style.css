@@ -14,13 +14,13 @@
 .C0fld{fill:#3b3b3b}
 .C0bkd{background-color:#3b3b3b}
 .C0std{stroke:#3b3b3b}
-.C1{color:#7A7A7A}
-.C1fl{fill:#7A7A7A}
-.C1fl_hov:hover{fill:#7A7A7A!important}
-.C1bk{background-color:#7A7A7A}
-.C1flim{fill:#7A7A7A!important}
-.C1br{border-color:rgba(122,122,122,1)!important}
-.C1st{stroke:#7A7A7A}
+.C1{color:#f06923}
+.C1fl{fill:#f06923}
+.C1fl_hov:hover{fill:#f06923!important}
+.C1bk{background-color:#f06923}
+.C1flim{fill:#f06923!important}
+.C1br{border-color:rgba(240,105,35,0.7)!important}
+.C1st{stroke:#f06923}
 .C2{color:#818181}
 .C2fl{fill:#818181}
 .C2br,.C2br_hov:hover{border-color:#818181}
@@ -40,24 +40,13 @@
 .C5{color:rgba(95,155,45,.9)}
 .C5bk{background-color:rgba(95,155,45,.9)}
 .C5fl{fill:rgba(95,155,45,.9)}
-.SplitCenter {
-	text-align: center;
-}
-
-.SplitCenter .Spl {
-	display: inline-block;
-	width: 200px; /* ajusta se precisares de mais/menos espaço */
-	margin: 10px;
-	vertical-align: top;
-	text-align: center;
-}
 
 /*--------------------------------------*/
 /*-----End of Customization Section------- (You can customize the rest, but shouldn't need to) */
 /*--------------------------------------*/
 
 /*Reset*/
-html,body{width:100%;height:100%;min-height:100%;margin:0;padding:0;border:0;overflow-x:hidden}
+html,body{width:100%;height:100%;min-height:100%;margin:0;padding:0;border:0}
 body{overflow-y:auto;-webkit-overflow-scrolling:touch}
 p{margin:0;padding:0;padding-top:10px}
 a:focus{outline:0}
@@ -188,7 +177,7 @@ select,.select-point{cursor:pointer}
 #MinerGraph .MinerMsg{padding-top:25px;text-align:center}
 
 /*Header*/
-header{height:44px; position: relative;}
+header{height:44px}
 #HeadLogo{position:absolute;width:128px;margin-left:10px;height:20px;top:15px;cursor:pointer}
 
 #HeadMenu,#TogMode,#Timer,#TimerRefresh,#TimerLoader{position:absolute;width:32px;height:32px;left:100%;top:9px;box-sizing:border-box;padding:5px}
@@ -229,17 +218,10 @@ header{height:44px; position: relative;}
 #NewsBody{padding:10px 0 15px 0}
 
 #MinerDash{margin-bottom:10px}
-#MinerDash .SplitCenter .Spl {
-	display: inline-block;
-	width: 200px;
-	margin: 10px;
-	text-align: center;
-	vertical-align: top;
-}
-
+#MinerDash .Spl{display:inline-block;width:50%;text-align:center}
 
 #MinerPayments{position:relative;height:0;border-bottom:1px solid rgba(0,0,0,.25);transition:height 300ms;overflow:hidden}
-#MinerPayments.Opened{height:Auto}
+#MinerPayments.Opened{height:180px}
 #MinerPayments.OpenedBig{height:375px}
 #MinerPayments .LR85{height:calc(100% - 1px)}
 
@@ -251,13 +233,8 @@ header{height:44px; position: relative;}
 #EmailToggleBtn{width:140px;height:32px;margin-left:18px}
 #AutoPayFld{width:calc(50% - 9px);height:32px;border-width:1px;border-style:solid;padding:5px}
 #InstaPayBtn .preload,#AutoPayBtn .preload{display:inline-block;height:22px;width:22px}
-#MinerPaymentsTable table{width:100%;table-layout:fixed;border-collapse:collapse;border-spacing:0;empty-cells:show;font-family:Tahoma,Helvetica,sans-serif;font-size:14px;line-height:18px;color:#b3b3b3;height:100%;border-style:solid;border-width:0 1px;border-color:rgba(0,0,0,0.1);-webkit-tap-highlight-color:transparent;}
-#MinerPaymentsTable td{padding:6px 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-#MinerPaymentsTable td:nth-child(1){width:25%;}
-#MinerPaymentsTable td:nth-child(2){width:20%;}
-#MinerPaymentsTable td:nth-child(3){width:55%;}
-#MinerPaymentsTable{min-height:100px;padding-bottom:10px;}
 
+#MinerPaymentsTable{min-height:100px}
 #MinerPaymentsStage table{height:100%;border-style:solid;border-width:0 1px;border-color:rgba(0,0,0,.1);padding:3px}
 
 #WorkerList{min-height:100px}
@@ -276,7 +253,7 @@ header{height:44px; position: relative;}
 #PageBot{min-height:200px}
 .helpgroup{margin-top:20px;padding-left:25px;padding-bottom:10px}
 
-.helptitle{position:relative;display:inline-block;color:#7A7A7A;fill:#7A7A7A;cursor:pointer}
+.helptitle{position:relative;display:inline-block;color:#f06923;fill:#f06923;cursor:pointer}
 .helptitle:hover{color:#818181;fill:#818181}
 .helptitle .btnback{position:absolute;z-index:2;width:26px;height:26px;border-radius:50%;margin-left:-33px;top:-2px;padding:3px;box-sizing:border-box}
 .helpteaser,.helpcontent{margin-top:5px}
@@ -351,19 +328,5 @@ footer,#MinerGraph,#MinerPayments{-webkit-box-shadow:inset 0px 25px 16px -22px r
 	.LR85{width:95%;left:2.5%}
 }
 
-.GraphStatsBox {
-  font-size: 10px;
-  font-weight: bold;
-  padding-left: 10px;
-  color: #b3b3b3;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  line-height: 1.4;
-  position: relative;
-  top: 12px;
-  user-select: none;
-}
 /*Fix svg text classes*/
 svg .txtmed{font-size:20px}
-
