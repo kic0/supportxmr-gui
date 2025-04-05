@@ -5,7 +5,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#efefef" />
-<link rel="preload" href="font/GothamCondensed-Medium.woff2" as="font">
 <link rel="stylesheet" type="text/css" href="style_min.css" />
 <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
 </head>
@@ -24,6 +23,13 @@
 		<div id="TimerLoader" class="C1fl C0bkl preload hide"></div>
 	</div>
 </header>
+<div id="GraphStats" class="txtmed C3l noselect" style="position:relative; top:12px; left:10px; font-size:90%;margin-bottom:5px;">
+  <span id="miners" class="C3l"></span>&nbsp;&nbsp;&nbsp;
+  <span id="poolHashrate" class="C3l"></span>&nbsp;&nbsp;&nbsp;
+  <span id="globalHashrate" class="C3l"></span>&nbsp;&nbsp;&nbsp;
+  <span id="lastBlock" class="C3l"></span>
+</div>
+
 <div id="NetGraph"></div>
 <div id="Addr" class="LR85">
 	<div class="SplitL">
